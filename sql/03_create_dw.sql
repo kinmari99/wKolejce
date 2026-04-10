@@ -8,7 +8,7 @@ nfz_code nvarchar(3) not null unique
 Create table dw.dim_benefit(
 benefit_key int identity(1,1) not null primary key,
 [healthcare_benefits_code] [nvarchar](8) not null unique,
-[benefits_name] [nvarchar](100) NOT NULL,
+[benefits_name] [nvarchar](400) NOT NULL,
 is_active bit not null,
 
     constraint chk_dim_benefit_code_not_empty
@@ -28,12 +28,7 @@ case_name nvarchar(50) not null unique,
 Create table dw.dim_provider(
 provider_key int identity(1,1) not null primary key,
 provider_code [nvarchar](12) NOT NULL unique,
-	[provider_name] [nvarchar](200) NOT NULL,
-	[internal_provider_code] [nvarchar](10) NULL,
-	[internal_provider_name] [nvarchar](100) NOT NULL,
-	[city] [nvarchar](50) NOT NULL,
-	[district] [nvarchar](75) NULL,
-	[tel_number] [nvarchar](15) NOT NULL,
+	[provider_name] [nvarchar](400) NOT NULL,
 	voivodeship_key int not null,
 	is_active bit not null default 1,
 	constraint fk_dim_provider_voivodeship
@@ -43,8 +38,6 @@ provider_code [nvarchar](12) NOT NULL unique,
     check (len(ltrim(rtrim(provider_code))) > 0),
 	constraint chk_dim_provider_provider_name_not_empty
     check (len(ltrim(rtrim(provider_name))) > 0),
-	constraint chk_dim_provider_city_not_empty
-    check (len(ltrim(rtrim(city))) > 0)
 )
 
 Create table dw.dim_date(
@@ -106,6 +99,7 @@ snapshot_key int not null,
 voivodeship_key int not null,
 benefit_key int not null,
 provider_key int not null,
+provider_unit_key INT NOT NULL,
 case_key int not null,
 info_date_key int not null,
 first_available_date_key int,
@@ -153,7 +147,10 @@ constraint chk_fact_waiting_list_snapshot_days_to_first_available
     check (
         (is_available = 0 and first_available_date_key is null)
         or
-        (is_available = 1 and first_available_date_key is not null)
+        (is_available = 1 and first_available_date_key is not null),
+        CONSTRAINT fk_fact_provider_unit
+FOREIGN KEY (provider_unit_key)
+REFERENCES dw.dim_provider_unit(provider_unit_key);
     )
 
 )
@@ -220,4 +217,38 @@ constraint fk_dim_location_voivodeship
             or longitude between -180 and 180
         )
 )
+
+USE [wKolejce]
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dw].[dim_provider_unit](
+    [provider_unit_key] INT IDENTITY(1,1) NOT NULL,
+    [provider_key] INT NOT NULL,
+    [internal_provider_code] NVARCHAR(10) NOT NULL,
+    [internal_provider_name] NVARCHAR(400) NOT NULL,
+    [city] NVARCHAR(50) NOT NULL,
+    [district] NVARCHAR(75) NULL,
+    [tel_number] NVARCHAR(30) NULL,
+    [is_active] BIT NOT NULL DEFAULT (1),
+    CONSTRAINT pk_dim_provider_unit
+        PRIMARY KEY CLUSTERED ([provider_unit_key] ASC),
+    CONSTRAINT fk_dim_provider_unit_provider
+        FOREIGN KEY (provider_key)
+        REFERENCES dw.dim_provider(provider_key),
+    CONSTRAINT uq_dim_provider_unit_business
+        UNIQUE (provider_key, internal_provider_code),
+    CONSTRAINT chk_dim_provider_unit_code_not_empty
+        CHECK (LEN(LTRIM(RTRIM(internal_provider_code))) > 0),
+    CONSTRAINT chk_dim_provider_unit_name_not_empty
+        CHECK (LEN(LTRIM(RTRIM(internal_provider_name))) > 0),
+    CONSTRAINT chk_dim_provider_unit_city_not_empty
+        CHECK (LEN(LTRIM(RTRIM(city))) > 0)
+)
+
 
