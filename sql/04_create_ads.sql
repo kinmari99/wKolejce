@@ -9,18 +9,19 @@ create table ads.current_waiting_list(
 
     voivodeship_name nvarchar(50) not null,
     healthcare_benefits_code nvarchar(8) not null,
-    benefits_name nvarchar(200) not null,
+    benefits_name nvarchar(400) not null,
     case_name nvarchar(50) not null,
 
     provider_code nvarchar(12) not null,
-    provider_name nvarchar(200) not null,
+    provider_name nvarchar(400) not null,
     internal_provider_code nvarchar(10) null,
-    internal_provider_name nvarchar(100) null,
+    internal_provider_name nvarchar(400) null,
     provider_display_name nvarchar(350) not null,
+    provider_unit_key int,
 
     city nvarchar(50) not null,
     district nvarchar(75) null,
-    tel_number nvarchar(15) null,
+    tel_number nvarchar(30) null,
 
     snapshot_date datetime2 not null,
     file_date datetime2 not null,
@@ -73,7 +74,7 @@ create table ads.current_waiting_list(
         references dw.dim_location(location_key),
 
     constraint uq_ads_current_waiting_list_grain
-        unique (snapshot_key, benefit_key, provider_key, case_key),
+unique (snapshot_key, benefit_key, provider_unit_key, case_key),
 
     constraint chk_ads_current_waiting_list_no_of_ppl_waiting
         check (no_of_ppl_waiting is null or no_of_ppl_waiting >= 0),
@@ -122,5 +123,8 @@ create table ads.current_waiting_list(
         check (latitude is null or latitude between -90 and 90),
 
     constraint chk_ads_current_waiting_list_longitude
-        check (longitude is null or longitude between -180 and 180)
+        check (longitude is null or longitude between -180 and 180),
+        constraint fk_ads_provider_unit
+foreign key (provider_unit_key)
+references dw.dim_provider_unit(provider_unit_key)
 );
