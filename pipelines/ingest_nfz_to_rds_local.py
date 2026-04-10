@@ -290,10 +290,10 @@ def main():
     df = pd.read_excel(LOCAL_FILE, header=2)
     print("Wczytano wierszy z Excela:", len(df))
 
-    # na start file_date = czas modyfikacji pliku lokalnego
+    
     file_date = pd.Timestamp(LOCAL_FILE.stat().st_mtime, unit="s")
 
-    # najpierw insert batcha, bo raw wymaga load_batch_id
+    
     load_batch_id = insert_load_batch(
         engine=engine,
         file_name=file_name,
