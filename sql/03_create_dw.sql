@@ -229,43 +229,24 @@ GO
 
 CREATE TABLE [dw].[dim_provider_unit](
     [provider_unit_key] INT IDENTITY(1,1) NOT NULL,
-
-    -- FK do szpitala / providera
     [provider_key] INT NOT NULL,
-
-    -- kod i nazwa komórki
     [internal_provider_code] NVARCHAR(10) NOT NULL,
     [internal_provider_name] NVARCHAR(400) NOT NULL,
-
-    -- lokalizacja
     [city] NVARCHAR(50) NOT NULL,
     [district] NVARCHAR(75) NULL,
-
-    -- kontakt
     [tel_number] NVARCHAR(30) NULL,
-
-    -- status
     [is_active] BIT NOT NULL DEFAULT (1),
-
     CONSTRAINT pk_dim_provider_unit
         PRIMARY KEY CLUSTERED ([provider_unit_key] ASC),
-
-    -- FK do providera
     CONSTRAINT fk_dim_provider_unit_provider
         FOREIGN KEY (provider_key)
         REFERENCES dw.dim_provider(provider_key),
-
-    -- klucz biznesowy
     CONSTRAINT uq_dim_provider_unit_business
         UNIQUE (provider_key, internal_provider_code),
-
-    -- walidacje
     CONSTRAINT chk_dim_provider_unit_code_not_empty
         CHECK (LEN(LTRIM(RTRIM(internal_provider_code))) > 0),
-
     CONSTRAINT chk_dim_provider_unit_name_not_empty
         CHECK (LEN(LTRIM(RTRIM(internal_provider_name))) > 0),
-
     CONSTRAINT chk_dim_provider_unit_city_not_empty
         CHECK (LEN(LTRIM(RTRIM(city))) > 0)
 )
